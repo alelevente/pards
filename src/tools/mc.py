@@ -144,8 +144,8 @@ def add_st_node(P, source_distribution=None):
 ####### STATIONARY DISTRIBUTION #########
 
 def calculate_stationary_distribution(P):
-    P2 = P_a.T - np.eye(len(P_a))
-    P2[-1] = np.ones(len(P_a))
+    P2 = P.T - np.eye(len(P))
+    P2[-1] = np.ones(len(P))
     return np.linalg.solve(P2, np.concatenate((np.zeros(len(P2)-1), [1])))
 
 
