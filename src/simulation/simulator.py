@@ -1,5 +1,5 @@
 import numpy as np
-import mc_sampler as sampler
+import simulation.mc_sampler as sampler
 
 class Simulator:
     '''
@@ -12,6 +12,8 @@ class Simulator:
     '''
     states = np.array([])
     remainings = np.array([])
+    ids = np.array([])
+    act_id = 0
 
     def __init__(self, transition_mtx, feeding_model, inital_state_model, path_length_model):
         self.transition_mtx = transition_mtx
@@ -19,8 +21,9 @@ class Simulator:
         self.initial_state_model = inital_state_model
         self.path_length_model = path_length_model
         self.state_space_size = len(self.initial_state_model)
+        self.ids = []
 
-    def simulate(self, n_steps=None, call_back_function=None):
+    def simulate(self, n_steps=None, callback_function=None):
         '''
             Executes simulation steps.
             Parameters:
@@ -30,18 +33,22 @@ class Simulator:
 
         def _step(t):
             #adding new elements:
-            new_states = np.choice(range(self.state_space_size),
-                self.feeding_model[t] if t<len(self.feeding_model) else 0,
+            num_news = int(self.feeding_model[t]) if t<len(self.feeding_model) else 0
+            new_states = np.random.choice(range(self.state_space_size),
+                num_news,
                 p=self.initial_state_model)
-            new_remainings = np.choice(range(len(self.path_length_model)),
-                self.feeding_model[t] if t<len(self.feeding_model) else 0,
+            new_remainings = np.random.choice(range(1,len(self.path_length_model)+1),
+                num_news,
                 p=self.path_length_model)
+            new_ids = np.array(range(self.act_id, self.act_id+num_news))
             
             self.states = np.append(self.states, [new_states])
             self.remainings = np.append(self.remainings, [new_remainings])
+            self.ids = np.append(self.ids, [new_ids])
+            self.ids += num_news
 
             #running the callback:
-            call_back_function(t, self.states)
+            callback_function(t, self.states, self.ids, self.remainings)
 
             #executing movements:
             self.states = sampler.sample_chain(self.transition_mtx, self.states)
@@ -49,12 +56,12 @@ class Simulator:
 
             #remove finished elements:
             self.states = np.delete(self.states, self.remainings==0)
+            self.ids = np.delete(self.ids, self.remainings==0)
             self.remainings = np.delete(self.remainings, self.remainings==0)
 
         _step(0)
         t = 1
-        while ((n_steps is None) and (len(self.states)>0) or
-            (t<n_steps)):
+        while ((n_steps is None) and (len(self.states)>0)) or (not(n_steps is None) and (t<n_steps)):
             _step(t)
             t += 1
         return t

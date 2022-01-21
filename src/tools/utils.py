@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 
 import sumolib
 from sumolib.visualization import helpers
+import tools.mc as mc
 
 import io
 import imageio
@@ -113,3 +114,20 @@ class MatrixPower:
         return self.powers[n]
 
 
+##########################################
+############ OTHER HELPERS ###############
+def read_MC(network_path: str, turning_path: str, default_turning_rates: list):
+    '''
+        Reads a SUMO network and the turning description file. Then converts them into a MC.
+        Parameters:
+            network_path: path to the SUMO road network file
+            turning_path: path to the turning definition file
+        Return:
+            P: transition matrix of the MC
+            edge_to_index_map: network edges -> indices of P
+            index_to_edge_map: indices of P -> network edges
+    '''
+    
+    net = sumolib.net.readNet(network_path)
+    turning_desc = pd.read_xml(turning_path, xpath="./interval/*")
+    return mc.create_transition_matrix(net, default_turning_rates, turning_desc)
