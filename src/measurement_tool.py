@@ -8,6 +8,18 @@ import metrics
 
 import time
 
+class DistanceRecords:
+    '''Stores distance measurements.'''
+    def __init__(self):
+        ''' Parameters:
+            method_names: names of the records'''
+        self.ids = []
+        self.method = []
+        self.distances = []
+        self.distance_diffs = []
+        self.times = []
+
+
 class MeasCallback:
     def __init__(self, net, P_f, P_b, edge_to_index_map, index_to_edge_map,
                  o_dist, matrix_power,
@@ -42,13 +54,12 @@ class MeasCallback:
         
         self.times = {"dist_calc": 0, "tell_calc": 0, "meetings": 0, "source_p": 0, "distances": 0}
         
-        self.distances = {}
-        self.distance_differences = {}
         self.distance_calculator = metrics.DistanceCalculator(P_f)
         self.source_probs = metrics.SourceProbabilities(matrix_power, P_b, p_length)
+        self.distance_records = DistanceRecords()
         
         
-    def _store_distances(self, t, sender_id, sent_routes, true_starting_edge, n=10):
+    def _store_distances(self, t, sender_id, sent_routes, method_names, true_starting_edge, n=10):
         '''
             Stores the correctness (i.e. reconstruction distances) of alter. This can be
             seen as the privacy loss of ego.
@@ -58,16 +69,15 @@ class MeasCallback:
                 sent_route: list of lists of the sent edges per measurement cases
                    (in order of time, i.e. sent_route[0] is the firstly edge
                    visited, sent_route[-1] is the point of sharing)
+                method_names: name of the sent_route selection methods
                 true_starting_edge: origin of the sender vehicle (ego)
                 n: number of most probable edges
             Stores:
                 distances[id][t][x] refers to the top n distances of the given vehicle id
                 shared at timestep t. x iterates through the telling methods
         '''
-        distances = []
-        dist_differences = []
         time_start = time.time()
-        for route in sent_routes:
+        for route, name in zip(sent_routes, method_names):
             dist_, dist_dif, times = metrics.calculate_correctness_best_n(self.net, self.index_to_edge_map,
                                                              self.matrix_power,
                                                              self.P, route, self.p_length,
@@ -78,16 +88,15 @@ class MeasCallback:
             
             self.times["source_p"] = self.times["source_p"] + times["source_p"]
             self.times["distances"] = self.times["distances"] + times["distances"]
-            distances.append(dist_)
-            dist_differences.append(dist_dif)
+            for i in range(n):
+                self.distance_records.ids.append(sender_id)
+                self.distance_records.times.append(t)
+                self.distance_records.method.append(name)
+                self.distance_records.distances.append(dist_[i])
+                self.distance_records.distance_diffs.append(dist_dif[i])
+            
         self.times["dist_calc"] = self.times["dist_calc"] + (time.time()-time_start)
-        if not(sender_id in self.distances):
-            self.distances[sender_id] = {}
-            self.distance_differences[sender_id] = {}
-        self.distances[sender_id][t] = distances
-        self.distance_differences[sender_id][t] = dist_differences
-
-
+        
         
     def _share_information(self, t, ids, routes):
         '''
@@ -139,6 +148,7 @@ class MeasCallback:
             #storing distances = the loss of privacy caused by the sharing:
             self._store_distances(t, _id,
                     [uniform[i-1], minprob[i-1], last1[i-1], last2[i-1], last3[i-1], mix[i-1]],
+                    ["uniform", "minprob", "last1", "last2", "last3", "mix"],
                                   self.movement_tracker.movements[_id][0])
             
         

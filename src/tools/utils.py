@@ -1,7 +1,10 @@
 '''This file contains utility functions including:
 - visualization'''
 
+import time
+import json
 import math
+
 import numpy as np
 import pandas as pd
 
@@ -55,7 +58,7 @@ def plot_network_probs(net, probabilities, index_to_edge_map, cmap="YlGn",
         for e in index_to_edge_map.values():
             colors[e] = (0.125, 0.125, 0.125, .25)
     else:
-        c_norm = matplotlib.colors.LogNorm(vmin=min(probabilities)*0.85+0.0001, vmax=max(probabilities)*1.15)
+        c_norm = matplotlib.colors.LogNorm(vmin=min(probabilities)*0.85, vmax=max(probabilities)*1.15)
         scalar_map = cmx.ScalarMappable(norm=c_norm, cmap=cmap)
         for i,p in enumerate(probabilities):
             if (p == 0.0) and (i in index_to_edge_map):
@@ -188,28 +191,25 @@ def create_iongs_dataframe(measurement_tool):
     return answer
 
 def create_distance_dataframe(measurement_tool):
-    legends = ["uniform", "minprob", "last1", "last2", "last3", "mix"]
-    
-    distances_per_telling = [[] for i in range(len(legends))]
-    dist_dif_per_telling = [[] for i in range(len(legends))]
-    ids = [[] for i in range(len(legends))]
-    
-    for _id in measurement_tool.distances:
-        for t in measurement_tool.distances[_id]:
-            for i,dist in enumerate(measurement_tool.distances[_id][t]):
-                distances_per_telling[i] = distances_per_telling[i] + dist
-                dist_dif_per_telling[i] = dist_dif_per_telling[i] + measurement_tool.distance_differences[_id][t][i]
-                ids[i] = ids[i] + [_id]*len(dist)
-                
-    data = []
-    for i, l in enumerate(legends):
-        for j,d in enumerate(distances_per_telling[i]):
-            data.append([l, ids[i][j], d, dist_dif_per_telling[i][j]])
-    return pd.DataFrame(data, columns=["method", "id", "Alter correctness", "Distance difference"])
+    records = measurement_tool.distance_records
+    #data = np.array([records.method, records.ids, records.times, records.distances, records.distance_diffs]).T
+    #minimizing memory usage:
+    distance_df = pd.DataFrame()
+    distance_df.insert(0, "id", records.ids)
+    distance_df.insert(1, "time", records.times)
+    distance_df.insert(2, "method", records.method)
+    distance_df.insert(3, "Alter correctness", records.distances)
+    distance_df.insert(4, "Distance difference", records.distance_diffs)
+    return distance_df
 
 def save_results(measurement_tool, path_to_save):
+    start = time.time()
     iongs = create_iongs_dataframe(measurement_tool)
+    print("IONG collected in %f seconds"%(time.time()-start))
+    
+    start = time.time()
     distances = create_distance_dataframe(measurement_tool)
+    print("Distances collected in %f seconds"%(time.time()-start))
     iongs.to_csv(path_to_save+"iong.csv", index=False)
     distances.to_csv(path_to_save+"distances.csv", index=False)
     return iongs, distances

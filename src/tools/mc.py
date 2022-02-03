@@ -79,6 +79,14 @@ def create_transition_matrix(net, turning_rates, special_turning_rates):
             P[edge_to_index_map[edge._id], edge_to_index_map[to_edge._id]] = probs[conn]
     return P, edge_to_index_map, index_to_edge_map
 
+def list_terminating_edges(trans_mtx):
+        #an edge is a terminating edge, iff no edges go out from that
+        terminating_edges = []
+        for i in range(len(trans_mtx)):
+            if np.sum(trans_mtx[i, :]) == 0:
+                terminating_edges.append(i)
+        return terminating_edges
+
 # Methods for creating an irreducible, positive MC
 # Construction:
 # 1. Adding a new source/terminal (ST) state to the chain
@@ -100,14 +108,6 @@ def add_st_node(P, source_distribution=None):
     '''
 
     #helper functions:
-    def list_terminating_edges(trans_mtx):
-        #an edge is a terminating edge, iff no edges go out from that
-        terminating_edges = []
-        for i in range(len(trans_mtx)):
-            if np.sum(trans_mtx[i, :]) == 0:
-                terminating_edges.append(i)
-        return terminating_edges
-
     def list_source_edges(trans_mtx):
         #an edge is a source edge, iff no edges come into that
         source_edges = []
@@ -126,16 +126,18 @@ def add_st_node(P, source_distribution=None):
 
     def connect_sources_to_ST(trans_mtx, distribution=None):
         new_row = np.zeros(len(trans_mtx)+1)
+        add_new_row = False
         if distribution is None:
             sources = list_source_edges(trans_mtx)
             p_source = 1/len(sources) if len(sources)>0 else 0
+            add_new_row = len(sources)>0
             for i in sources:
                 new_row[i] = p_source
         else:
-            for i in distribution:
-                new_row[i] = distribution[i]
+            new_row = distribution
+            add_new_row = True
         #adding a new row to the original transition matrix:
-        return np.vstack((trans_mtx, new_row)) if np.sum(new_row)>0 else trans_mtx
+        return np.vstack((trans_mtx, new_row)) if add_new_row else trans_mtx
 
 
     #outer function:

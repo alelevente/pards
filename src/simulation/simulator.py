@@ -15,13 +15,14 @@ class Simulator:
     ids = np.array([])
     act_id = 0
 
-    def __init__(self, transition_mtx, feeding_model, inital_state_model, path_length_model):
+    def __init__(self, transition_mtx, feeding_model, inital_state_model, path_length_model, terminating_edges=None):
         self.transition_mtx = transition_mtx
         self.feeding_model = feeding_model
         self.initial_state_model = inital_state_model
         self.path_length_model = path_length_model
         self.state_space_size = len(self.initial_state_model)
         self.ids = []
+        self.terminating_edges = terminating_edges
 
     def simulate(self, n_steps=None, callback_function=None):
         '''
@@ -56,6 +57,11 @@ class Simulator:
             self.states = sampler.sample_chain(self.transition_mtx, self.states)
             self.states = np.array(self.states, dtype=int)
             self.remainings = self.remainings - 1 #everyone has stepped one
+
+            #preventing leaving vehicles to reenter:
+            if not(self.terminating_edges is None):
+                for term in self.terminating_edges:
+                    self.remainings[self.states == term] = 1
 
             #remove finished elements:
             self.states = np.delete(self.states, self.remainings<=0)

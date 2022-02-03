@@ -15,7 +15,7 @@ def _get_to_junction(edge_name):
 def _collect_neighborings(edge_names):
     '''
         Creates a map from edge names that represent the neighboring edges
-        e.g. A2B2 -> [B2A2, B2B3, B2B1, B2C3, A2B2, B3B2, B1B2, C3B2]
+        e.g. A2B2 -> [B2A2, B2B3, B2B1, B2B3, A2B2, B3B2, B1B2, B3B2]
     '''
     result = {}
     for e in edge_names:
