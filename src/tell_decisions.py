@@ -9,24 +9,28 @@ def tell_uniform(P, route):
         Parameters:
             P: _backward_ transition matrix of the Markov chain
             route: the actual route of a vehicle'''
+    assert len(route)>0
+    
     r = len(route) if len(route)<2 else np.random.randint(1, len(route), 1)[0]
     return route[-r:]
 
-def tell_min_prob(P, route, st_dist, matrix_power):
-    ''' Selects the maximal length s.t. the finding probability will be at most as it would be in the stationary case.
+def tell_min_prob(P, route, o_dist, matrix_power, source_probs):
+    ''' Selects the maximal length s.t. the finding probability will be at most as the origin model would dictate
         Parameters:
             P: _backward_ transition matrix of the Markov chain
             route: the actual route of a vehicle
-            st_dist: stationary distribution of the _forward_ Markov chain
+            o_dist: origin distribution
             matrix_power: matrix powering object'''
+    assert len(route)>0
+    
     r = 1
-    t_r = np.zeros(len(P))
-    t_r[route[-r]] = 1.0
-    while (r<len(route)) and (metrics.calculate_source_probability(matrix_power, P, t_r, d=r)[route[-r]] <= st_dist[route[-r]]):
-        t_r[route[-r]] = 0.0
+    #t_r = np.zeros(len(P))
+    #t_r[route[-r]] = 1.0
+    while (r<len(route)) and (source_probs(route[-r], d=len(route)-r)[route[0]] <= o_dist[route[0]]):
+        #t_r[route[-r]] = 0.0
         r += 1
-        if r<len(route):
-            t_r[route[-r]] = 1.0
+        #if r<len(route):
+        #    t_r[route[-r]] = 1.0
     return route[-r:]
         
     
@@ -36,6 +40,8 @@ def tell_last_n(P, route, n):
             P: _backward_ transition matrix of the Markov chain
             route: the actual route of a vehicle
             n: number of streets to share'''
+    assert len(route)>0
+    
     streets = 0
     r = 1
     while (r<len(route)-1) and (streets != n):
@@ -45,14 +51,16 @@ def tell_last_n(P, route, n):
         r += 1
     return route[-(r-1):]
 
-def tell_mix(P, route, st_dist, matrix_power, n):
+def tell_mix(P, route, st_dist, matrix_power, n, source_probs):
     ''' Randomly selects a method from above ones.'''
+    assert len(route)>0
+    
     method = np.random.choice([0,1,2], 1)[0]
     answer = []
     if method == 0:
         answer = tell_uniform(P, route)
     elif method == 1:
-        answer = tell_min_prob(P, route, st_dist, matrix_power)
+        answer = tell_min_prob(P, route, st_dist, matrix_power, source_probs)
     else:
         answer = tell_last_n(P, route, n)
     return answer

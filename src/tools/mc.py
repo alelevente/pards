@@ -30,6 +30,7 @@ def get_turn_probabilities(from_edge, turning_rates, special_turning_rates=None)
                 if not(direction in processed_directions):
                     to_id = d.getTo()._id
                     processed_directions.append(direction)
+                    #print(to_id)
                     answer[d] = rates[rates["to"] == to_id].probability.values[0]
         return answer
     
@@ -120,24 +121,26 @@ def add_st_node(P, source_distribution=None):
         new_column = np.zeros(len(trans_mtx)).reshape(len(trans_mtx), 1)
         for i in terms:
             new_column[i]=1.0
+        #adding a new column to the original transition matrix:
         return np.append(trans_mtx, new_column, axis=1) if np.sum(new_column)>0 else trans_mtx
 
     def connect_sources_to_ST(trans_mtx, distribution=None):
         new_row = np.zeros(len(trans_mtx)+1)
         if distribution is None:
             sources = list_source_edges(trans_mtx)
-            p_source = 1/len(sources)
+            p_source = 1/len(sources) if len(sources)>0 else 0
             for i in sources:
                 new_row[i] = p_source
         else:
             for i in distribution:
                 new_row[i] = distribution[i]
+        #adding a new row to the original transition matrix:
         return np.vstack((trans_mtx, new_row)) if np.sum(new_row)>0 else trans_mtx
 
 
     #outer function:
     P_a = connect_terminates_to_ST(P)
-    P_a = connect_sources_to_ST(P_a)
+    P_a = connect_sources_to_ST(P_a, source_distribution)
     return P_a
 
 #########################################

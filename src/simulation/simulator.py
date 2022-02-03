@@ -37,7 +37,8 @@ class Simulator:
             new_states = np.random.choice(range(self.state_space_size),
                 num_news,
                 p=self.initial_state_model)
-            new_remainings = np.random.choice(range(1,len(self.path_length_model)+1),
+            new_states = np.array(new_states, dtype=int)
+            new_remainings = np.random.choice(range(len(self.path_length_model)),
                 num_news,
                 p=self.path_length_model)
             new_ids = np.array(range(self.act_id, self.act_id+num_news))
@@ -45,19 +46,21 @@ class Simulator:
             self.states = np.append(self.states, [new_states])
             self.remainings = np.append(self.remainings, [new_remainings])
             self.ids = np.append(self.ids, [new_ids])
-            self.ids += num_news
+            self.act_id += num_news
 
             #running the callback:
+            #print(max(self.remainings))
             callback_function(t, self.states, self.ids, self.remainings)
 
             #executing movements:
             self.states = sampler.sample_chain(self.transition_mtx, self.states)
+            self.states = np.array(self.states, dtype=int)
             self.remainings = self.remainings - 1 #everyone has stepped one
 
             #remove finished elements:
-            self.states = np.delete(self.states, self.remainings==0)
-            self.ids = np.delete(self.ids, self.remainings==0)
-            self.remainings = np.delete(self.remainings, self.remainings==0)
+            self.states = np.delete(self.states, self.remainings<=0)
+            self.ids = np.delete(self.ids, self.remainings<=0)
+            self.remainings = np.delete(self.remainings, self.remainings<=0)
 
         _step(0)
         t = 1
