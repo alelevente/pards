@@ -17,19 +17,21 @@ if __name__ == "__main__":
                                                        "../data/turnings.xml",
                                                        [.15, .8, .05])
     net = sumolib.net.readNet("../data/large_grid2.net.xml")
-    P_ = tools.mc.add_st_node(P, [0.0, 0.0]) #prevents cars that have left the network to return
+    term_edges = set(tools.mc.list_terminating_edges(P))
+    P_ = tools.mc.add_st_node(P) #prevents cars that have left the network to return
     π = tools.mc.calculate_stationary_distribution(P_)#[:-1]/np.sum(tools.mc.calculate_stationary_distribution(P_)[:-1])
     P_b = tools.mc.calculate_time_reversed_mc(P_, π)
     matrix_power = tools.utils.MatrixPower(P_b)
-    initial_state_model = π #np.ones(len(P))/len(P) 
+    initial_state_model = np.ones(len(P))/len(P) 
     
     #Feeding model:
     feeding_model = np.ones(1000)*4.0
-    path_length_model = tools.utils.sample_route_lengths(20, np.sum(feeding_model))
+    path_length_model = tools.utils.sample_route_lengths_uniform(20, np.sum(feeding_model))
     
     measurement_tool = measurement_tool.MeasCallback(net, P_, P_b, edge_to_index_map, index_to_edge_map,
                                 initial_state_model, matrix_power, path_length_model)
-    sim = simulator.Simulator(P_, feeding_model, initial_state_model, path_length_model)
+    sim = simulator.Simulator(P_, feeding_model, initial_state_model, path_length_model,
+                        term_edges)
 
     start_time = time.time()
     run_steps = sim.simulate(callback_function=measurement_tool)
@@ -37,4 +39,4 @@ if __name__ == "__main__":
 
     print("Simulator finished in {} steps, computed in {} seconds".format(run_steps, stop_time-start_time))
     
-    tools.utils.save_results(measurement_tool, "../results/medium/")
+    tools.utils.save_results(measurement_tool, "../results/arteria/medium_uniform/")
