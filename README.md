@@ -1,4 +1,4 @@
-# Privacy-aware real-time data sharing between CAVs
+# PARDS
 
 Here are the source codes related to the paper submitted to the IAV2022 conference, entitled as `Privacy-aware Methods for Data Sharing between Autonomous Vehicles`.
 
