@@ -1,6 +1,6 @@
 # PARDS
 
-Here are the source codes related to the paper submitted to the IAV2022 conference, entitled as `Privacy-aware Methods for Data Sharing between Autonomous Vehicles`.
+Here are the source codes related to the paper submitted to the IAV2022 conference by Levente Alekszejenkó and Tadeusz Dobrowiecki.
 
 
 ### Todo:
