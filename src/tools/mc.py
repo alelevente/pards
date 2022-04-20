@@ -1,10 +1,30 @@
 '''Methods to handle SUMO networks as Markov Chains (MCs)'''
 
 import numpy as np
+import pandas as pd
 from sklearn.preprocessing import normalize
+
+import sumolib
 
 ##############################################################
 ################ METHODS FOR PREPROCESSING ###################
+def read_MC(network_path: str, turning_path: str, default_turning_rates: list):
+    '''
+        Reads a SUMO network and the turning description file. Then converts them into a MC.
+        Parameters:
+            network_path: path to the SUMO road network file
+            turning_path: path to the turning definition file
+        Return:
+            P: transition matrix of the MC
+            edge_to_index_map: network edges -> indices of P
+            index_to_edge_map: indices of P -> network edges
+    '''
+    
+    net = sumolib.net.readNet(network_path)
+    turning_desc = pd.read_xml(turning_path, xpath="./interval/*")
+    return create_transition_matrix(net, default_turning_rates, turning_desc)
+
+
 def get_turn_probabilities(from_edge, turning_rates, special_turning_rates=None):
     '''
         Creates a map of connection objects to probabilities of turning from a given a edge.

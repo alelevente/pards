@@ -1,6 +1,8 @@
 import numpy as np
 import simulation.mc_sampler as sampler
 
+from tqdm import tqdm
+
 class Simulator:
     '''
         Implements the simulator.
@@ -70,7 +72,12 @@ class Simulator:
 
         _step(0)
         t = 1
+        
+        pbar = tqdm(total=n_steps if not(n_steps is None) else len(self.feeding_model)+len(self.path_length_model))
         while ((n_steps is None) and (len(self.states)>0)) or (not(n_steps is None) and (t<n_steps)):
             _step(t)
             t += 1
+            pbar.update(1)
+        pbar.close()
+        
         return t

@@ -124,33 +124,6 @@ class MatrixPower:
 
 ##########################################
 ############ OTHER HELPERS ###############
-def read_MC(network_path: str, turning_path: str, default_turning_rates: list):
-    '''
-        Reads a SUMO network and the turning description file. Then converts them into a MC.
-        Parameters:
-            network_path: path to the SUMO road network file
-            turning_path: path to the turning definition file
-        Return:
-            P: transition matrix of the MC
-            edge_to_index_map: network edges -> indices of P
-            index_to_edge_map: indices of P -> network edges
-    '''
-    
-    net = sumolib.net.readNet(network_path)
-    turning_desc = pd.read_xml(turning_path, xpath="./interval/*")
-    return mc.create_transition_matrix(net, default_turning_rates, turning_desc)
-
-def sample_route_lengths(a, num_samples):
-    p_m = 1/a
-    ds = np.arange(1, 2*a+1)
-    return np.array([2*p_m/a*d if d<=a/2 else -2*p_m/(3*a)*d+4/3*p_m for d in ds])
-
-def sample_route_lengths_uniform(a, num_samples):
-    p_m = 1/a
-    ds = np.arange(1, 2*a+1)
-    return np.array([1/(a**2)*d if d<=a else -1/(a**2)*d+2/a for d in ds])
-
-
 def create_iongs_dataframe(measurement_tool):
     iongs_uniform = []
     iongs_minprob = []
