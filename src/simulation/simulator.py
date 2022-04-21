@@ -52,7 +52,6 @@ class Simulator:
             self.act_id += num_news
 
             #running the callback:
-            #print(max(self.remainings))
             callback_function(t, self.states, self.ids, self.remainings)
 
             #executing movements:
