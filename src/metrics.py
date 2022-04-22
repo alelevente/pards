@@ -10,6 +10,8 @@ import sumolib
 
 from tools.utils import MatrixPower
 
+import torch
+
 def calculate_source_probability(matrix_power: MatrixPower, P_b, t_r, p_length=None, d=None):
     ''' Computes the distribution of origins in the space of all edges of a network.
         Parameters:
@@ -45,14 +47,28 @@ class SourceProbabilities:
     def __init__(self, matrix_power: MatrixPower, P_b, p_length):
         self.alter_sources = {}
         self.ego_sources = {}
+        
+        cuda = torch.cuda.is_available()
+        mp = []
+        if cuda:
+            for d in range(len(p_length)):
+                mp.append(torch.from_numpy(matrix_power(d)).float().to("cuda"))
+                
         for edge_idx in range(len(P_b)): #iterating through each edges:
             self.ego_sources[edge_idx] = []
-            t_r = np.zeros(len(P_b))
+            t_r = torch.zeros(len(P_b)) if torch.cuda.is_available() else np.zeros(len(P_b))
             t_r[edge_idx] = 1.0
+            if cuda:
+                t_r = t_r.float().to("cuda")
             #calculation
             elements = []
             for d in range(len(p_length)):
-                elem_ = t_r @ matrix_power(d)
+                if cuda:
+                    with torch.no_grad():
+                        #mp = torch.from_numpy(matrix_power(d)).float().to("cuda")
+                        elem_ = (t_r @ mp[d]).to("cpu").numpy()
+                else:
+                    elem_ = t_r @ matrix_power(d)
                 self.ego_sources[edge_idx].append(elem_)
                 elements.append(elem_ * p_length[d])
             elements = np.array(elements)

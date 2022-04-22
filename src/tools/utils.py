@@ -24,6 +24,8 @@ import sys
 sys.path.append("../")
 import metrics
 
+import torch
+
 class Option:
     #default options required by sumolib.visualization
     defaultWidth = 1.5
@@ -113,8 +115,17 @@ class MatrixPower:
     def __init__(self, base_matrix, max_n=40):
         self.base_matrix = np.array(base_matrix)
         self.powers[0] = base_matrix
-        for i in range(1, max_n):
-            self.powers[i] = self.powers[i-1] @ base_matrix
+        #for faster calculation on GPU:
+        if torch.cuda.is_available():
+            base = torch.from_numpy(base_matrix).to("cuda")
+            y = torch.from_numpy(base_matrix).to("cuda")
+            with torch.no_grad():
+                for i in range(1, max_n):
+                    y = y @ base
+                    self.powers[i] = y.to("cpu").numpy()
+        else:
+            for i in range(1, max_n):
+                self.powers[i] = self.powers[i-1] @ base_matrix
         
     def __call__(self, n):
         if not(n in self.powers):
