@@ -123,7 +123,7 @@ class MeasCallback:
             last1[i]= tell_decisions.tell_last_n(self.P, routes[i], 1)
             last2[i]= tell_decisions.tell_last_n(self.P, routes[i], 2)
             last3[i]= tell_decisions.tell_last_n(self.P, routes[i], 3)
-            mix[i]= tell_decisions.tell_mix(self.P, routes[i], self.o_dist, self.matrix_power, 1, self.source_probs)
+            mix[i]= tell_decisions.tell_mix(self.P, routes[i], self.o_dist, self.matrix_power, [3], self.source_probs)
         
         self.times["tell_calc"] = self.times["tell_calc"] + (time.time()-t_start)
             
@@ -153,7 +153,7 @@ class MeasCallback:
             
         
     def __call__(self, t, states, ids, remainings):
-        if t%20 == 0: print("Step %d"%t)
+        #if t%20 == 0: print("Step %d"%t)
         self.movement_tracker(t, states, ids, remainings)
         t_start = time.time()
         meetings = self.meeting_model(t, states, ids, remainings)

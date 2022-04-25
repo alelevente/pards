@@ -174,17 +174,33 @@ def create_iongs_dataframe(measurement_tool):
                          columns = ["id", "uniform", "minprob", "last1", "last2", "last3", "mix"])
     return answer
 
-def create_distance_dataframe(measurement_tool):
-    records = measurement_tool.distance_records
+def create_distance_data(measurement_tool, filename):
+    #records = measurement_tool.distance_records
     #data = np.array([records.method, records.ids, records.times, records.distances, records.distance_diffs]).T
     #minimizing memory usage:
-    distance_df = pd.DataFrame()
+    #distances = {
+    #    "ids": records.ids,
+    #    "times": records.times,
+    #    "method": records.method,
+    #    "alter_correctness": records.distances,
+    #    "distance_difference": records.distance_diffs
+    #}
+    '''distance_df = pd.DataFrame()
     distance_df.insert(0, "id", records.ids)
     distance_df.insert(1, "time", records.times)
     distance_df.insert(2, "method", records.method)
     distance_df.insert(3, "Alter correctness", records.distances)
-    distance_df.insert(4, "Distance difference", records.distance_diffs)
-    return distance_df
+    distance_df.insert(4, "Distance difference", records.distance_diffs)'''
+    with open(filename, "w") as f:
+        f.write("id,time,method,Alter correctness,Distance difference\n")
+        for i in range(len(measurement_tool.distance_records.ids)):
+            f.write("%d,%d,%s,%d,%d\n"%(
+                int(measurement_tool.distance_records.ids[i]),
+                measurement_tool.distance_records.times[i],
+                measurement_tool.distance_records.method[i],
+                measurement_tool.distance_records.distances[i],
+                measurement_tool.distance_records.distance_diffs[i]))
+    return None
 
 def save_results(measurement_tool, path_to_save):
     start = time.time()
@@ -192,8 +208,10 @@ def save_results(measurement_tool, path_to_save):
     print("IONG collected in %f seconds"%(time.time()-start))
     
     start = time.time()
-    distances = create_distance_dataframe(measurement_tool)
+    distances = create_distance_data(measurement_tool, path_to_save+"distances.csv")
     print("Distances collected in %f seconds"%(time.time()-start))
     iongs.to_csv(path_to_save+"iong.csv", index=False)
-    distances.to_csv(path_to_save+"distances.csv", index=False)
+    #with open(path_to_save+"distances.json", "w") as f:
+    #    json.dump(distances, f)
+    #distances.to_csv(path_to_save+"distances.csv", index=False)
     return iongs, distances

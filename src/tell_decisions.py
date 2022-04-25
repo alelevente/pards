@@ -55,12 +55,12 @@ def tell_mix(P, route, st_dist, matrix_power, n, source_probs):
     ''' Randomly selects a method from above ones.'''
     assert len(route)>0
     
-    method = np.random.choice([0,1,2], 1)[0]
+    method = np.random.choice(np.arange(0, len(n)+2), 1)[0]
     answer = []
     if method == 0:
         answer = tell_uniform(P, route)
     elif method == 1:
         answer = tell_min_prob(P, route, st_dist, matrix_power, source_probs)
     else:
-        answer = tell_last_n(P, route, n)
+        answer = tell_last_n(P, route, np.random.choice(n, 1)[0]+1)
     return answer
