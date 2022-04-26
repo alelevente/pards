@@ -23,7 +23,8 @@ class DistanceRecords:
 class MeasCallback:
     def __init__(self, net, P_f, P_b, edge_to_index_map, index_to_edge_map,
                  o_dist, matrix_power,
-                 p_length):
+                 p_length,
+                 mix_n = [1,2,3]):
         '''
             Parameters:
                 net: SUMO road network
@@ -34,6 +35,7 @@ class MeasCallback:
                 o_dist: origin distribution of the _forward_ Markov Chain
                 matrix_power: matrix poewring object
                 p_length: route length model
+                mix_n: n values for the MIX data selection method
         '''
         self.net = net
         self.meeting_model = meeting_model.Meeting(edge_to_index_map, index_to_edge_map)
@@ -42,6 +44,7 @@ class MeasCallback:
         self.matrix_power = matrix_power
         self.index_to_edge_map = index_to_edge_map
         self.p_length = p_length
+        self.mix_n = mix_n
         
         self.movement_tracker = movement_tracker.MovementTracker()
         
@@ -123,7 +126,7 @@ class MeasCallback:
             last1[i]= tell_decisions.tell_last_n(self.P, routes[i], 1)
             last2[i]= tell_decisions.tell_last_n(self.P, routes[i], 2)
             last3[i]= tell_decisions.tell_last_n(self.P, routes[i], 3)
-            mix[i]= tell_decisions.tell_mix(self.P, routes[i], self.o_dist, self.matrix_power, [3], self.source_probs)
+            mix[i]= tell_decisions.tell_mix(self.P, routes[i], self.o_dist, self.matrix_power, self.mix_n, self.source_probs)
         
         self.times["tell_calc"] = self.times["tell_calc"] + (time.time()-t_start)
             
