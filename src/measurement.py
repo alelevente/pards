@@ -27,6 +27,7 @@ if __name__ == "__main__":
     with open(args.config_file) as f:
         config = json.load(f)
     mix_n = [int(x) for x in args.mix_n]
+    print(mix_n)
         
     P, edge_to_index_map, index_to_edge_map = tools.mc.read_MC(
         config["sumo_grid"],
