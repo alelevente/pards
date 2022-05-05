@@ -50,7 +50,7 @@ def get_turn_probabilities(from_edge, turning_rates, special_turning_rates=None)
                 if not(direction in processed_directions):
                     to_id = d.getTo()._id
                     processed_directions.append(direction)
-                    #print(to_id)
+                    #print(from_id, to_id)
                     answer[d] = rates[rates["to"] == to_id].probability.values[0]
         return answer
     

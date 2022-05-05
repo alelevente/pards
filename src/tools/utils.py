@@ -66,7 +66,7 @@ def plot_network_probs(net, probabilities, index_to_edge_map, cmap="YlGn",
             if (p == 0.0) and (i in index_to_edge_map):
                 colors[index_to_edge_map[i]] = (0.125, 0.125, .125, .125)
             elif i in index_to_edge_map:
-                colors[index_to_edge_map[i]] = scalar_map.to_rgba(p)
+                colors[index_to_edge_map[i]] = scalar_map.to_rgba(min(1,max(0,p)))
     
     if not(special_edges is None):
         for ind in special_edges:
